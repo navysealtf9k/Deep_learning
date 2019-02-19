@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sklearn
 
+#Step 1: Cleaning dataset
 # Importing the dataset
 dataset = pd.read_csv('Churn_Modelling.csv')
 
@@ -19,7 +20,6 @@ dataset = pd.read_csv('Churn_Modelling.csv')
 #dataset.shape
 #dataset.info()
 
-#Step 1: Cleaning dataset
 X = dataset.drop(['RowNumber', 'CustomerId', 'Surname', 'Exited'], axis=1).values
 y = dataset.loc[:,'Exited'].values
 
@@ -58,39 +58,39 @@ X_test = sc.transform(X_test)
 import keras
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.layers import Dropout #Function that randomly turns off neurons; prevent overfit
+# from keras.layers import Dropout #Function that randomly turns off neurons; prevent overfit
 
-#Step 2a: Initializing an ANN named classifier
-classifier = Sequential()
+# #Step 2a: Initializing an ANN named classifier
+# classifier = Sequential()
 
-#Now lets add an input and a hidden layer to it
-classifier.add(layer=Dense(units=6, kernel_initializer='uniform', activation='relu', input_dim=11,)) #Units are avg of independent variables and output variable
-#Add dropout layer to prevent overfitting 
-classifier.add(layer=Dropout(rate=0.1))
-#Add a second hidden layer
-classifier.add(layer=Dense(units=6, kernel_initializer='uniform', activation='relu'))
+# #Now lets add an input and a hidden layer to it
+# classifier.add(layer=Dense(units=6, kernel_initializer='uniform', activation='relu', input_dim=11,)) #Units are avg of independent variables and output variable
+# #Add dropout layer to prevent overfitting 
+# classifier.add(layer=Dropout(rate=0.1))
+# #Add a second hidden layer
+# classifier.add(layer=Dense(units=6, kernel_initializer='uniform', activation='relu'))
 
-#Add an output layer
-classifier.add(layer=Dense(units=1, kernel_initializer='uniform', activation='sigmoid'))
+# #Add an output layer
+# classifier.add(layer=Dense(units=1, kernel_initializer='uniform', activation='sigmoid'))
 
-#Compiling the ANN
-classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+# #Compiling the ANN
+# classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-#Step 2c: Fit ANN and train it on training data
-classifier.fit(X_train, y_train, batch_size=10, epochs=100)
+# #Step 2c: Fit ANN and train it on training data
+# classifier.fit(X_train, y_train, batch_size=10, epochs=100)
 
 
-# #Step 3: Evaluating ANN performance
+# # #Step 3: Evaluating ANN performance
 
-#Predicting the Test set results
-y_pred = classifier.predict(X_test)
-y_pred = (y_pred > 0.5)
-print(y_pred)
+# #Predicting the Test set results
+# y_pred = classifier.predict(X_test)
+# y_pred = (y_pred > 0.5)
+# print(y_pred)
 
-#Making the Confusion Matrix
-from sklearn.metrics import confusion_matrix
-cm = confusion_matrix(y_test, y_pred)
-print(cm)
+# #Making the Confusion Matrix
+# from sklearn.metrics import confusion_matrix
+# cm = confusion_matrix(y_test, y_pred)
+# print(cm)
 
 #Homework challenge 1: Predict whether a single customer will leave the bank?
 
@@ -132,7 +132,7 @@ from sklearn.model_selection import GridSearchCV
 
 
 #Function to build ANN architecture created above
-def build_classifier():
+def build_classifier(optim):
     #Initialize an ANN named classifier
     classifier = Sequential()
     #Now lets add an input and a hidden layer to it
@@ -142,8 +142,22 @@ def build_classifier():
     #Add an output layer
     classifier.add(layer=Dense(units=1, kernel_initializer='uniform', activation='sigmoid'))
     #Compiling the ANN
-    classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    classifier.compile(optimizer=optim, loss='binary_crossentropy', metrics=['accuracy'])
 
     return classifier
+    
+#Dictionary of hyper parameter values to tune
+classifier = KerasClassifier(build_classifier)
+parameters = {'batch_size' : [6,12,24], 'epochs' : [500, 1000], 
+'optim' : ['adam', 'rmsprop']}
+gridsearch = GridSearchCV(estimator=classifier, param_grid=parameters, 
+scoring='accuracy', cv=10)
 
+#Search grid for hyperparameters that optimize accuracy
+grid_search = gridsearch.fit(X=X_train, y=y_train)
 
+#Optimal parameters
+best_parameters = grid_search.best_params_
+best_accuracy = grid_search.best_score_
+print('best parameters:', best_parameters)
+print('Accuracy after tuning:', best_accuracy)

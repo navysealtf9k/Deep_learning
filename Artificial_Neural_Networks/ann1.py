@@ -126,3 +126,24 @@ print(cm)
 # accuracies = cross_val_score(estimator=classifier, X=X_train, y=y_train, cv=10, n_jobs=-1) 
 # print('average accuracy: ',accuracies/len(accuracies))
 
+#Part 4c: Tuning the ANN
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import GridSearchCV
+
+
+#Function to build ANN architecture created above
+def build_classifier():
+    #Initialize an ANN named classifier
+    classifier = Sequential()
+    #Now lets add an input and a hidden layer to it
+    classifier.add(layer=Dense(units=6, kernel_initializer='uniform', activation='relu', input_dim=11,)) #Units are avg of independent variables and output variable
+    #Add a second hidden layer
+    classifier.add(layer=Dense(units=6, kernel_initializer='uniform', activation='relu'))
+    #Add an output layer
+    classifier.add(layer=Dense(units=1, kernel_initializer='uniform', activation='sigmoid'))
+    #Compiling the ANN
+    classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+    return classifier
+
+
